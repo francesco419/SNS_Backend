@@ -200,3 +200,54 @@ exports.checkDuplicate = (req, res) => {
     );
   });
 };
+
+exports.updateProfileImg = (req, res) => {
+  paramId = req.body.id;
+  paramUrl = req.body.url;
+  getConnection.getConnection((err, conn) => {
+    if (err) {
+      console.log(err);
+      return res.send(false);
+    }
+    console.log("UPI connected");
+    const exec = conn.query(
+      `update users set img=? where id=?`,
+      [paramUrl, paramId],
+      (err, result) => {
+        conn.release();
+        if (err) {
+          console.log(err);
+          return res.send(false);
+        } else {
+          console.log("UPI update Success");
+          return res.send(result);
+        }
+      }
+    );
+  });
+};
+
+exports.updateFollow = (req, res) => {
+  paramId = req.body.id;
+  paramToId = req.body.toID;
+  getConnection.getConnection((err, conn) => {
+    if (err) {
+      console.log(err);
+      return res.send(false);
+    }
+    console.log("UFW connected");
+    const exec = conn.query(
+      `update follow set followNum=followNum+1, followDetail=concat(followDetail,', ${paramToId}') where id='${paramId}'; update users A join follow B on A.id=B.id set A.follow = B.followNum where A.id='${paramId}';select follow from users where id='${paramId}'`,
+      (err, result) => {
+        conn.release();
+        if (err) {
+          console.log(err);
+          return res.send(false);
+        } else {
+          console.log("UFW Success");
+          return res.send(result);
+        }
+      }
+    );
+  });
+};

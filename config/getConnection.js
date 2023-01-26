@@ -8,6 +8,7 @@ const pool = mysql.createPool({
   password: dbconfig.password,
   database: dbconfig.database,
   debug: false,
+  multipleStatements: true,
 });
 
 function getConnection(callback) {
