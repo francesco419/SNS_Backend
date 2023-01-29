@@ -84,13 +84,20 @@ exports.postLoginCheck = (req, res) => {
 };
 
 exports.postPostIn = (req, res) => {
+  console.log(req);
   console.log("PostIn Check");
   //const jsonTag = JSON.stringify(req.body.tag);
   //const josnimg = JSON.stringify(req.body.img);
   getConnection.getConnection((err, conn) => {
     const exec = conn.query(
-      "INSERT INTO posts(id,text,tag,img) VALUES(?,?,?,?);",
-      [req.body.user_id, req.body.text, req.body.tag, req.body.img],
+      "INSERT INTO posts(id,text,tag,date,img) VALUES(?,?,?,?,?);",
+      [
+        req.body.user_id,
+        req.body.text,
+        req.body.tag,
+        req.body.date,
+        req.body.img,
+      ],
       (err, result) => {
         conn.release();
         if (err) {
@@ -245,6 +252,33 @@ exports.updateFollow = (req, res) => {
           return res.send(false);
         } else {
           console.log("UFW Success");
+          return res.send(result);
+        }
+      }
+    );
+  });
+};
+
+exports.searchPost = (req, res) => {
+  console.log(req.body);
+  paramName = req.body.name;
+  getConnection.getConnection((err, conn) => {
+    if (err) {
+      console.log(err);
+      return res.send(false);
+    }
+    console.log("SRP connected");
+    console.log(paramName);
+    const exec = conn.query(
+      `Select * from posts where id like'%${paramName}%' or text like'%${paramName}%' or tag like'%${paramName}%'`,
+      (err, result) => {
+        conn.release();
+        if (err) {
+          console.log(err);
+          return res.send(false);
+        } else {
+          console.log(result);
+          console.log("SRP Success");
           return res.send(result);
         }
       }
