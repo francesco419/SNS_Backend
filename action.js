@@ -285,3 +285,30 @@ exports.searchPost = (req, res) => {
     );
   });
 };
+
+exports.uploadImage = (req, res) => {
+  console.log(req.file);
+  if (!req.file) {
+    return res.send("no file");
+  }
+  const filePath = req.file.path;
+  getConnection.getConnection((err, conn) => {
+    if (err) {
+      return res.send(err);
+    }
+    console.log("UIMG connected");
+    const exec = conn.query(
+      `update posts set='${filePath}' where text='${paramText}'`,
+      (err, result) => {
+        conn.release();
+        if (err) {
+          console.log(err);
+          return res.send(err);
+        } else {
+          console.log("UIMG Success");
+          return res.send(result);
+        }
+      }
+    );
+  });
+};
