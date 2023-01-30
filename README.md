@@ -8,3 +8,7 @@
 
 - postPostIn 수정
   - posts테이블의 수정에 따라 date를 불러오는 쿼리 수정.
+
+### 1.6.1
+
+- multer를 사용하여 이미지를 저장할수 있는 post 추가.
