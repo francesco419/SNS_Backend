@@ -1,3 +1,4 @@
+const multer = require("multer");
 const getConnection = require("./config/getConnection");
 
 exports.postRegister = (req, res) => {
@@ -83,20 +84,33 @@ exports.postLoginCheck = (req, res) => {
   });
 };
 
+function randomString() {
+  const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
+  const stringLength = 6;
+  let randomstring = "";
+  for (let i = 0; i < stringLength; i++) {
+    const rnum = Math.floor(Math.random() * chars.length);
+    randomstring += chars.substring(rnum, rnum + 1);
+  }
+  return randomstring;
+}
+
 exports.postPostIn = (req, res) => {
   console.log(req);
   console.log("PostIn Check");
+  let code = randomString();
   //const jsonTag = JSON.stringify(req.body.tag);
   //const josnimg = JSON.stringify(req.body.img);
   getConnection.getConnection((err, conn) => {
     const exec = conn.query(
-      "INSERT INTO posts(id,text,tag,date,img) VALUES(?,?,?,?,?);",
+      "INSERT INTO posts(id,text,tag,date,img,code) VALUES(?,?,?,?,?,?);",
       [
         req.body.user_id,
         req.body.text,
         req.body.tag,
         req.body.date,
         req.body.img,
+        code,
       ],
       (err, result) => {
         conn.release();
@@ -106,7 +120,7 @@ exports.postPostIn = (req, res) => {
           return res.send("result err");
         } else {
           console.log("Success");
-          return res.send("Success" + result);
+          return res.send(result);
         }
       }
     );
@@ -123,6 +137,15 @@ exports.getPostOut = (req, res) => {
         return res.send(err);
       } else {
         console.log("Success");
+        /* let img = JSON.parse(result[0].img);
+        let imgArr = [];
+        img.map((url) => {
+          let temp = process.cwd() + "/" + url;
+          console.log(new Blob(temp));
+          //imgArr.push(new Blob(process.cwd() + "/" + url));
+        });
+        result[0].img = imgArr; */
+        console.log(process.cwd());
         return res.send(result);
       }
     });
@@ -209,8 +232,22 @@ exports.checkDuplicate = (req, res) => {
 };
 
 exports.updateProfileImg = (req, res) => {
-  paramId = req.body.id;
-  paramUrl = req.body.url;
+  if (!req.body) {
+    return res.send("no user data");
+  }
+
+  const temp = [];
+
+  if (req.files) {
+    req.files.map((file) => {
+      temp.push(file.path);
+    });
+  }
+
+  userObject = {
+    id: req.body.id,
+    img: JSON.stringify(temp),
+  };
   getConnection.getConnection((err, conn) => {
     if (err) {
       console.log(err);
@@ -219,7 +256,7 @@ exports.updateProfileImg = (req, res) => {
     console.log("UPI connected");
     const exec = conn.query(
       `update users set img=? where id=?`,
-      [paramUrl, paramId],
+      [userObject.img, userObject.id],
       (err, result) => {
         conn.release();
         if (err) {
@@ -287,25 +324,94 @@ exports.searchPost = (req, res) => {
 };
 
 exports.uploadImage = (req, res) => {
-  console.log(req.file);
-  if (!req.file) {
-    return res.send("no file");
+  console.log(req.files);
+  if (!req.body) {
+    return res.send("no user data");
   }
-  const filePath = req.file.path;
+
+  const temp = [];
+  if (req.files) {
+    req.files.map((file) => {
+      temp.push(file.path);
+    });
+    console.log(temp);
+  }
+  userObject = {
+    id: req.body.id,
+    name: req.body.name,
+    text: req.body.text,
+    tag: req.body.tag,
+    date: req.body.time,
+    img: JSON.stringify(temp),
+  };
+  let postCode = randomString();
+  console.log("post test conn");
   getConnection.getConnection((err, conn) => {
     if (err) {
       return res.send(err);
     }
     console.log("UIMG connected");
     const exec = conn.query(
-      `update posts set='${filePath}' where text='${paramText}'`,
+      "insert into posts(id,name,date,text,tag,img,code) values(?,?,?,?,?,?,?)",
+      [
+        userObject.id,
+        userObject.name,
+        userObject.date,
+        userObject.text,
+        userObject.tag,
+        userObject.img,
+        postCode,
+      ],
       (err, result) => {
         conn.release();
         if (err) {
           console.log(err);
           return res.send(err);
         } else {
-          console.log("UIMG Success");
+          console.log("success");
+          return res.send(result);
+        }
+      }
+    );
+  });
+};
+
+exports.downloadImage = (req, res) => {
+  getConnection.getConnection((err, conn) => {
+    if (err) {
+      return res.send(err);
+    }
+    const exec = conn.query(
+      `select * from imgs where idimg='5'`,
+      (err, result) => {
+        conn.release();
+        if (err) {
+          console.log(err);
+          return res.send(err);
+        } else {
+          console.log(result[0].img);
+          return res.sendFile(process.cwd() + "/" + result[0].img);
+        }
+      }
+    );
+  });
+};
+
+exports.deletePost = (req, res) => {
+  let code = req.body.code;
+  console.log(code);
+  getConnection.getConnection((err, conn) => {
+    if (err) {
+      return res.send(err);
+    }
+    const exec = conn.query(
+      `delete from posts where code='${code}'`,
+      (err, result) => {
+        conn.release();
+        if (err) {
+          console.log(err);
+          return res.send(err);
+        } else {
           return res.send(result);
         }
       }
