@@ -51,6 +51,7 @@ app.use(express.static("images"));
 
 app.post("/login/register", actionApi.postRegister);
 app.post("/login", actionApi.postLoginCheck);
+app.get("/getuserdata", actionApi.getUserData);
 app.post("/post", actionApi.postPostIn);
 
 app.post("/userEdit", actionApi.postUserUpdate);
@@ -61,14 +62,26 @@ app.post("/update/follow", actionApi.updateFollow);
 
 app.post("/search/post", actionApi.searchPost);
 app.get("/fetch/post", actionApi.getPostOut);
+app.get("/fetchuserpost", actionApi.getUserPost);
+app.put("/fetchuserpost", actionApi.getUserPost);
 
 //app.post("/upload", upload.array("img"), actionApi.uploadImage);
 app.post("/post/delete", actionApi.deletePost);
 app.post("/upload", upload.any(), actionApi.uploadImage);
 app.post("/download", actionApi.downloadImage);
 
+app.post("/comment", actionApi.postComment);
+app.get("/fetchComment", actionApi.getComment);
+app.put("/deletecomment", actionApi.deleteComment);
+
+app.delete("/deletepost", actionApi.deletePost);
+app.put("/editpost", upload.any(), actionApi.editPost);
+
+/*------------------------follow-------------------------*/
+app.put("/changefollow", actionApi.doFollow);
+
 app.listen(db.PORT, () => {
-  console.log("listening on port");
+  console.log("listening on port", actionApi.editPost);
 });
 
 /* res.writeHead("400", { "Content-Type": "text/html; charset=utf8" });
